@@ -29,11 +29,13 @@ async function copyAssetsContent(dir, srcPath, destPath) {
   let fullSrcPath = path.join(srcPath, dir);
   let fullDestPath = path.join(destPath, dir);
   fs.readdir(fullDestPath, (err, files) => {
-    if (err) throw err;
+    if (err) console.log(err);
     for (const file of files) {
-      fs.unlink(path.join(fullDestPath, file), err => {
-        if (err) throw err;
-      });
+      if (file) {
+        fs.unlink(path.join(fullDestPath, file), err => {
+          if (err) throw err;
+        });
+      }
     }
   });
   const assetsContent = await readdir(fullSrcPath, { withFileTypes: true });
@@ -63,7 +65,7 @@ async function readFilesInDir() {
   try {
     const files = await readdir(inputPath, { withFileTypes: true });
     files.forEach((file) => {
-
+      // console.log(file);
       if (!file.isDirectory()) {
         let filePath = path.join(__dirname, 'styles', file.name);
         let fileObj = path.parse(filePath);
@@ -89,42 +91,27 @@ readFilesInDir();
 const templatePath = path.join(__dirname, 'template.html');
 const componentsPath = path.join(__dirname, 'components');
 const outputPathHtml = path.join(__dirname, 'project-dist', 'index.html');
-const { Transform, pipeline } = require('stream');
-const rs = fs.createReadStream(templatePath);
-const ws = fs.createWriteStream(outputPathHtml);
-const ts = new Transform({
-  transform(chunk, enc, cb) {
-    let str = chunk.toString();
-    console.log(str);
 
-    //тут я хотела поменять шаблонные тэги на компоненты, но видимо из-за недопонимания как работает асинхронность - не получается
-    // (
-    //   async () => {
-    //     const files = await readdir(componentsPath, { withFileTypes: true });
-    //     files.forEach(file => {
-    //       let fileName = file.name.split('.')[0];
-    //       let componentRStream = fs.createReadStream(path.join(componentsPath, file.name));
-
-    //       let componentData = '';
-
-    //       componentRStream.on('data', chunk => componentData += chunk);
-    //       componentRStream.on('end', () => {
-    //         if (fileName) {
-    //           // str = str.split(`{{${fileName}}}`);
-    //           // console.log(str)
-    //         }
-    //       });
-    //     });
-    //   }
-    // )();
-    this.push(Buffer.from(str));
-    cb();
-  }
+fs.readFile(templatePath, (err, data) => {
+  let template;
+  if (err) console.log(err);
+  template = data.toString();
+  (
+    async () => {
+      const files = await readdir(componentsPath, { withFileTypes: true });
+      files.forEach(file => {
+        let fileName = file.name.split('.')[0];
+        let componentRStream = fs.createReadStream(path.join(componentsPath, file.name));
+        let componentData = '';
+        componentRStream.on('data', chunk => componentData += chunk);
+        componentRStream.on('end', () => {
+          if (fileName) {
+            template = template.replace(`{{${fileName}}}`, componentData);
+          }
+          let ws = fs.createWriteStream(outputPathHtml);
+          ws.write(template);
+        });
+      });
+    }
+  )();
 });
-
-pipeline(
-  rs,
-  ts,
-  ws,
-  (err) => console.log(err)
-);

@@ -1,3 +1,4 @@
+/* main */
 main .container {
   padding-top: 120px;
   padding-bottom: 120px;
@@ -48,7 +49,7 @@ main .container {
   width: 300px;
   height: 360px;
   background-size: cover;
-  background-repeat: no-repeat;  
+  background-repeat: no-repeat;
   text-decoration: none;
   box-shadow: 0 -150px 150px -120px #02160b inset, 0 -100px 100px -80px #02160b inset, 0 -50px 50px -40px #02160b inset;
 }
@@ -133,7 +134,7 @@ main .container {
   width: 540px;
   height: 60px;
   padding: 10px;
-  background-color:transparent;
+  background-color: transparent;
   border: 1px solid #666;
   border-right: 0;
   outline: 0;
@@ -149,7 +150,7 @@ main .container {
   width: 120px;
   height: 60px;
   color: #f7f7f7;
-  background-color: #cd6326;  
+  background-color: #cd6326;
   font-size: 24px;
   border: 1px solid #cd6326;
   border-radius: 0 5px 5px 0;

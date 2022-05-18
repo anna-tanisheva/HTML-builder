@@ -1,3 +1,4 @@
+/* header */
 @font-face {
   font-family: 'Karolina';
   src: url('assets/fonts/Karolina-Regular.woff2') format('woff2');
@@ -83,7 +84,7 @@ header .container {
   background-image: url('assets/svg/logo.svg');
   background-size: contain;
   background-position: left center;
-  background-repeat: no-repeat;  
+  background-repeat: no-repeat;
 }
 
 .logo h1,
@@ -104,14 +105,14 @@ header .container {
   background-image: url('assets/svg/search.svg');
   background-size: contain;
   background-position: center center;
-  background-repeat: no-repeat;  
+  background-repeat: no-repeat;
   cursor: pointer;
 }
 
 .login {
   width: 120px;
   height: 50px;
-  border: 2px solid #cd6326;  
+  border: 2px solid #cd6326;
   border-radius: 5px;
   text-align: center;
   transition: .3s;
