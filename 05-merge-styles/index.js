@@ -12,11 +12,12 @@ async function readFilesInDir() {
     files.forEach((file) => {
 
       if (!file.isDirectory()) {
-        let filePath = path.join(__dirname, 'styles', file.name);
+        let filePath = path.join(inputPath, file.name);
         let fileObj = path.parse(filePath);
         if (fileObj.ext === '.css') {
           const input = fs.createReadStream(filePath, 'utf-8');
           input.on('data', chunk => output.write(chunk));
+          input.on('end', () => output.write(' \n'));
         }
       }
     });
