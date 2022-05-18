@@ -15,9 +15,13 @@ async function readFilesInDir() {
         let filePath = path.join(inputPath, file.name);
         let fileObj = path.parse(filePath);
         if (fileObj.ext === '.css') {
+          let styles = '';
           const input = fs.createReadStream(filePath, 'utf-8');
-          input.on('data', chunk => output.write(chunk));
-          input.on('end', () => output.write(' \n'));
+          input.on('data', chunk => styles += chunk);
+          input.on('end', () => {
+            output.write(styles);
+            output.write('\n');
+          });
         }
       }
     });
