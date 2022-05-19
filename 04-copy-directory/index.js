@@ -5,8 +5,12 @@ const path = require('path');
 const { readdir } = require('fs/promises');
 const srcPath = path.join(__dirname, 'files');
 const destPath = path.join(__dirname, 'files-copy');
-fsPromises.mkdir(destPath, { recursive: true });
-removeFiles();
+fsPromises.mkdir(destPath, { recursive: true }).then(() => {
+  removeFiles();
+  readFilesInDir();
+});
+
+// removeFiles();
 async function copyFileFromDir(fileName) {
   try {
     let fullSrcPath = path.join(srcPath, fileName);
@@ -16,6 +20,7 @@ async function copyFileFromDir(fileName) {
     console.error(err);
   }
 }
+
 async function removeFiles() {
   try {
     const files = await readdir(destPath, { withFileTypes: true });
@@ -28,6 +33,7 @@ async function removeFiles() {
     console.error(err);
   }
 }
+
 async function readFilesInDir() {
   try {
     const files = await readdir(srcPath, { withFileTypes: true });
@@ -38,5 +44,4 @@ async function readFilesInDir() {
     console.error(err);
   }
 }
-readFilesInDir();
 
