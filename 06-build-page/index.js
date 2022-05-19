@@ -14,39 +14,27 @@ const DEST_ASSETS_PATH = path.join(__dirname, 'project-dist', 'assets');
 
 const INPUT_PATH_CSS = path.join(__dirname, 'styles');
 const OUTPUT_PATH_CSS = path.join(__dirname, 'project-dist');
-const outputCss = fs.createWriteStream(path.join(OUTPUT_PATH_CSS, 'style.css'));
 
-fsPromises.mkdir(PROJECT_BUNDLE_PATH, { recursive: true }).then(() => {
+fsPromises.mkdir(PROJECT_BUNDLE_PATH, { recursive: true }).then(async () => {
+  await clearDestAssets();
+  fsPromises.readdir(PROJECT_BUNDLE_PATH).catch((err) => {
+    if (err) {
+      console.log('If error is showing, "project-dist" was removed or didn\'t exist');
+    }
+  });
   createIndexHtml();
+  copyAssets(SRC_ASSETS_PATH, DEST_ASSETS_PATH);
   readFilesInDir();
 });
 
 //copy assets
 
-fsPromises.mkdir(DEST_ASSETS_PATH, { recursive: true }).then(() => {
-  clearDestAssets(DEST_ASSETS_PATH);
-  copyAssets(SRC_ASSETS_PATH, DEST_ASSETS_PATH);
-});
-
-async function clearDestAssets(destPath) {
-  try {
-    const destDir = await readdir(destPath, { withFileTypes: true });
-    destDir.forEach(dir => {
-      if (dir.isDirectory()) {
-        let underlyingDir = path.join(destPath, dir.name);
-        clearDestAssets(underlyingDir);
-      } else {
-        fs.unlink(path.join(destPath, dir.name), err => {
-          if (err) throw err;
-        });
-      }
-    });
-  } catch (err) {
-    console.log(err);
-  }
+async function clearDestAssets() {
+  return fsPromises.rm(DEST_ASSETS_PATH, { recursive: true, force: true });
 }
 
 async function copyAssets(pathToAssets, destPath) {
+  await fsPromises.mkdir(DEST_ASSETS_PATH, { recursive: true });
   try {
     const assetsStructure = await readdir(pathToAssets, { withFileTypes: true });
     assetsStructure.forEach(dir => {
@@ -76,6 +64,7 @@ async function copyAssets(pathToAssets, destPath) {
 
 async function readFilesInDir() {
   try {
+    const outputCss = fs.createWriteStream(path.join(OUTPUT_PATH_CSS, 'style.css'));
     const files = await readdir(INPUT_PATH_CSS, { withFileTypes: true });
     files.forEach((file) => {
       if (!file.isDirectory()) {
