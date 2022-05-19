@@ -4,11 +4,21 @@ const path = require('path');
 const { readdir } = require('fs/promises');
 
 const projectBundlePath = path.join(__dirname, 'project-dist');
-fsPromises.mkdir(projectBundlePath, { recursive: true });
-
-//copy assets
+const templatePath = path.join(__dirname, 'template.html');
+const componentsPath = path.join(__dirname, 'components');
+const outputPathHtml = path.join(__dirname, 'project-dist', 'index.html');
 const srcAssetsPath = path.join(__dirname, 'assets');
 const destAssetsPath = path.join(__dirname, 'project-dist', 'assets');
+
+fsPromises.mkdir(projectBundlePath, { recursive: true }).then(() => {
+  createIndexHtml();
+  clearDestAssets(destAssetsPath);
+  copyAssets(srcAssetsPath, destAssetsPath);
+  readFilesInDir();
+});
+
+//copy assets
+
 fsPromises.mkdir(destAssetsPath, { recursive: true });
 
 async function clearDestAssets(destPath) {
@@ -54,8 +64,8 @@ async function copyAssets(pathToAssets, destPath) {
     console.log(err);
   }
 }
-clearDestAssets(destAssetsPath);
-copyAssets(srcAssetsPath, destAssetsPath);
+// clearDestAssets(destAssetsPath);
+// copyAssets(srcAssetsPath, destAssetsPath);
 
 // merge styles
 
@@ -86,34 +96,33 @@ async function readFilesInDir() {
     console.error(err);
   }
 }
-readFilesInDir();
+// readFilesInDir();
 
 
 //create html
-const templatePath = path.join(__dirname, 'template.html');
-const componentsPath = path.join(__dirname, 'components');
-const outputPathHtml = path.join(__dirname, 'project-dist', 'index.html');
 
-fs.readFile(templatePath, (err, data) => {
-  let template;
-  if (err) console.log(err);
-  template = data.toString();
-  (
-    async () => {
-      const files = await readdir(componentsPath, { withFileTypes: true });
-      files.forEach(file => {
-        let fileName = file.name.split('.')[0];
-        let componentRStream = fs.createReadStream(path.join(componentsPath, file.name));
-        let componentData = '';
-        componentRStream.on('data', chunk => componentData += chunk);
-        componentRStream.on('end', () => {
-          if (fileName) {
-            template = template.replace(`{{${fileName}}}`, componentData);
-          }
-          let ws = fs.createWriteStream(outputPathHtml);
-          ws.write(template);
+async function createIndexHtml() {
+  fs.readFile(templatePath, (err, data) => {
+    let template;
+    if (err) console.log(err);
+    template = data.toString();
+    (
+      async () => {
+        const files = await readdir(componentsPath, { withFileTypes: true });
+        files.forEach(file => {
+          let fileName = file.name.split('.')[0];
+          let componentRStream = fs.createReadStream(path.join(componentsPath, file.name));
+          let componentData = '';
+          componentRStream.on('data', chunk => componentData += chunk);
+          componentRStream.on('end', () => {
+            if (fileName) {
+              template = template.replace(`{{${fileName}}}`, componentData);
+            }
+            let ws = fs.createWriteStream(outputPathHtml);
+            ws.write(template);
+          });
         });
-      });
-    }
-  )();
-});
+      }
+    )();
+  });
+}
