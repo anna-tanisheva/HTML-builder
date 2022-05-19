@@ -3,57 +3,59 @@ const fsPromises = fs.promises;
 const path = require('path');
 const { readdir } = require('fs/promises');
 
+const projectBundlePath = path.join(__dirname, 'project-dist');
+fsPromises.mkdir(projectBundlePath, { recursive: true });
 
 //copy assets
-const projectBundlePath = path.join(__dirname, 'project-dist');
 const srcAssetsPath = path.join(__dirname, 'assets');
 const destAssetsPath = path.join(__dirname, 'project-dist', 'assets');
-fsPromises.mkdir(projectBundlePath, { recursive: true });
 fsPromises.mkdir(destAssetsPath, { recursive: true });
 
-copyAssetsStructure();
-async function copyAssetsStructure() {
+async function clearDestAssets(destPath) {
   try {
-    const assetsStructure = await readdir(srcAssetsPath);
-    assetsStructure.forEach(dir => {
-      fsPromises.mkdir(path.join(destAssetsPath, dir), { recursive: true });
-      copyAssetsContent(dir, srcAssetsPath, destAssetsPath);
+    const destDir = await readdir(destPath, { withFileTypes: true });
+    destDir.forEach(dir => {
+      if (dir.isDirectory()) {
+        let underlyingDir = path.join(destPath, dir.name);
+        clearDestAssets(underlyingDir);
+      } else {
+        fs.unlink(path.join(destPath, dir.name), err => {
+          if (err) throw err;
+        });
+      }
     });
   } catch (err) {
     console.log(err);
   }
 }
 
-
-async function copyAssetsContent(dir, srcPath, destPath) {
-  let fullSrcPath = path.join(srcPath, dir);
-  let fullDestPath = path.join(destPath, dir);
-  fs.readdir(fullDestPath, (err, files) => {
-    if (err) console.log(err);
-    for (const file of files) {
-      if (file) {
-        fs.unlink(path.join(fullDestPath, file), err => {
-          if (err) throw err;
-        });
-      }
-    }
-  });
-  const assetsContent = await readdir(fullSrcPath, { withFileTypes: true });
-  assetsContent.forEach(file => {
-    copyFileFromDir(file.name, fullSrcPath, fullDestPath);
-  });
-}
-
-async function copyFileFromDir(fileName, fullSrcPath, fullDestPath) {
-  let fullSrcPathFile = path.join(fullSrcPath, fileName);
-  let fullDestPathFile = path.join(fullDestPath, fileName);
+async function copyAssets(pathToAssets, destPath) {
   try {
-    await fsPromises.copyFile(fullSrcPathFile, fullDestPathFile);
+    const assetsStructure = await readdir(pathToAssets, { withFileTypes: true });
+    assetsStructure.forEach(dir => {
+      if (dir.isDirectory()) {
+        fsPromises.mkdir(path.join(destPath, dir.name), { recursive: true });
+        let pathToAssetsDir = path.join(pathToAssets, dir.name);
+        let destAssetsDirPath = path.join(destPath, dir.name);
+        copyAssets(pathToAssetsDir, destAssetsDirPath);
+      } else {
+        (async () => {
+          try {
+            let pathToFile = path.join(pathToAssets, dir.name);
+            let destPathToFile = path.join(destPath, dir.name);
+            await fsPromises.copyFile(pathToFile, destPathToFile);
+          } catch (err) {
+            console.error(err);
+          }
+        })();
+      }
+    });
   } catch (err) {
-    console.error(err);
+    console.log(err);
   }
 }
-copyAssetsStructure();
+clearDestAssets(destAssetsPath);
+copyAssets(srcAssetsPath, destAssetsPath);
 
 // merge styles
 
@@ -64,8 +66,8 @@ const outputCss = fs.createWriteStream(path.join(outputPath, 'style.css'));
 async function readFilesInDir() {
   try {
     const files = await readdir(inputPath, { withFileTypes: true });
+    // console.log(files);
     files.forEach((file) => {
-      // console.log(file);
       if (!file.isDirectory()) {
         let filePath = path.join(__dirname, 'styles', file.name);
         let fileObj = path.parse(filePath);
