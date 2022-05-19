@@ -64,8 +64,6 @@ async function copyAssets(pathToAssets, destPath) {
     console.log(err);
   }
 }
-// clearDestAssets(destAssetsPath);
-// copyAssets(srcAssetsPath, destAssetsPath);
 
 // merge styles
 
@@ -96,8 +94,6 @@ async function readFilesInDir() {
     console.error(err);
   }
 }
-// readFilesInDir();
-
 
 //create html
 
