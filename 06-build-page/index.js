@@ -17,9 +17,9 @@ const OUTPUT_PATH_CSS = path.join(__dirname, 'project-dist');
 
 fsPromises.mkdir(PROJECT_BUNDLE_PATH, { recursive: true }).then(async () => {
   await clearDestAssets();
-  fsPromises.readdir(PROJECT_BUNDLE_PATH).catch((err) => {
+  fsPromises.readdir(DEST_ASSETS_PATH).catch((err) => {
     if (err) {
-      console.log('If error is showing, "project-dist" was removed or didn\'t exist');
+      console.log('If this message is showing the "assets" was cleared successfully');
     }
   });
   createIndexHtml();
